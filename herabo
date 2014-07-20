@@ -1,0 +1,88 @@
+#!/usr/bin/env ruby
+
+# Information
+# Author: campo <joshcampoverde@gmail.com>
+# Date: July 20th, 2014
+
+## Installation
+# Create a symbolic link:
+# > ln -s ~/path/to/herabo/herabo ~/bin/herabo
+
+## Goal
+# Create a quick command line tool to set up
+# everything configured to run on heroku with
+# the most up to date versions of ruby, rails,
+# bootstrap, and devise.
+
+## Eventual dependencies
+# - ruby
+# - rails
+# - bootstrap
+# - devise
+# - pg
+# - heroku
+
+## Todo List
+# - Set up config file for pg database
+# - Remove sqlite3 from Gemfile
+
+def create_new_project
+  project_name = ARGV[1] || "new_herabo_project"
+
+  options = ARGV[2..ARGV.length]
+  puts "Creating a new rails project with the name #{project_name}..."
+  %x(rails new #{project_name})
+  puts "#{project_name} project created, enjoy!"
+  gemfile_location = "#{File.join(Dir.pwd, project_name, "Gemfile")}"
+  gemfile = File.open(gemfile_location, 'a+')
+
+  gemfile << "\n## Gems added by herabo"
+
+  # Add the bootstrap-sass gem
+  puts "Adding the bootstrap-sass gem to the Gemfile..."
+  gemfile << "\n# Use bootstrap-sass to include bootstrap for layout\n"
+  gemfile << "gem 'bootstrap-sass'\n"
+
+  # Add the pg gem
+  puts "Adding the pg gem to the Gemfile..."
+  gemfile << "\n# Use postgres as the database for Active Record on Heroku\n"
+  gemfile << "gem 'pg'\n"
+
+  # Add the rails_12factor gem
+  puts "Adding the rails_12factor gem to the Gemfile..."
+  gemfile << "\n# Include the rails_12factor gem for deployment to Heroku\n"
+  gemfile << "gem 'rails_12factor', group: :production\n"  
+
+  gemfile.close
+
+  puts "All gems added."
+
+  # Run bundle install to install all the gems
+  # Note: This doesn't work currently, need to change to the directory
+  # and then run bundle install
+  # puts "Running bundle install..."
+  # %x(cd #{project_name}/ & bundle install)
+  # %x(bundle install)
+
+  # Restart the rails server
+  puts "Restarting the rails server..."
+  %x(touch tmp/restart.txt)
+
+  puts "Sweet! Your new project is ready. Please run bundle install now."
+end
+
+def display_help_text(invalid=false)
+  puts "#{ARGV[0]} is not a valid herabo command. Displaying herabo help text." if invalid
+  puts "This is the help text for herabo. It still needs work. Send questions to joshcampoverde@gmail.com"
+end
+
+case ARGV[0]
+when 'new'
+  create_new_project
+when 'help'
+  display_help_text
+when nil
+  display_help_text
+else
+  display_help_text(true)
+end
